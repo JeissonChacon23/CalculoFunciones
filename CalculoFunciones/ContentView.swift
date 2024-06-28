@@ -41,28 +41,53 @@ struct ContentView: View {
     }
     
     func deriveEquation(equation: String) -> String {
-        // Implementa la lógica para derivar la ecuación
-        // Aquí estamos asumiendo que la ecuación es un polinomio simple de la forma ax^n
-        // Ejemplo: 3x^2 -> 6x
-        let terms = equation.split(separator: "+")
+        // Dividir la ecuación en términos separados por '+'
+        let terms = equation.replacingOccurrences(of: " ", with: "").split(separator: "+")
         var derivedTerms: [String] = []
         
         for term in terms {
-            if term.contains("x") {
-                let components = term.split(separator: "x")
-                if components.count == 2 {
-                    if let coefficient = Double(components[0]), let exponent = Double(components[1].replacingOccurrences(of: "^", with: "")) {
-                        let newCoefficient = coefficient * exponent
-                        let newExponent = exponent - 1
-                        derivedTerms.append("\(newCoefficient)x^\(newExponent)")
-                    }
-                } else if components.count == 1 {
-                    derivedTerms.append("1")
-                }
+            if let derivedTerm = deriveTerm(term: String(term)) {
+                derivedTerms.append(derivedTerm)
             }
         }
         
         return derivedTerms.joined(separator: " + ")
+    }
+    
+    func deriveTerm(term: String) -> String? {
+        // Verificar si el término contiene 'x'
+        if term.contains("x") {
+            let parts = term.split(separator: "x", maxSplits: 1, omittingEmptySubsequences: false)
+            var coefficient: Double = 1.0
+            var exponent: Double = 1.0
+            
+            if parts.count > 0 && !parts[0].isEmpty {
+                coefficient = Double(parts[0]) ?? 1.0
+            }
+            
+            if parts.count > 1 && !parts[1].isEmpty {
+                if parts[1].hasPrefix("^") {
+                    exponent = Double(parts[1].dropFirst()) ?? 1.0
+                }
+            } else if parts.count == 1 {
+                exponent = 1.0
+            }
+            
+            // Calcular la nueva derivada
+            let newCoefficient = coefficient * exponent
+            let newExponent = exponent - 1
+            
+            if newExponent == 0 {
+                return "\(newCoefficient)"
+            } else if newExponent == 1 {
+                return "\(newCoefficient)x"
+            } else {
+                return "\(newCoefficient)x^\(newExponent)"
+            }
+        } else {
+            // El término es una constante, su derivada es 0
+            return nil
+        }
     }
 }
 
